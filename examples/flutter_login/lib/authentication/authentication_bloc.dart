@@ -8,15 +8,15 @@ import 'package:flutter_login/authentication/authentication.dart';
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
   void onAppStart() {
-    dispatch(AppStarted());
+    dispatch(AppStart());
   }
 
   void onLogin({@required String token}) {
-    dispatch(LoggedIn(token: token));
+    dispatch(Login(token: token));
   }
 
   void onLogout() {
-    dispatch(LoggedOut());
+    dispatch(Logout());
   }
 
   @override
@@ -25,7 +25,7 @@ class AuthenticationBloc
   @override
   Stream<AuthenticationState> mapEventToState(
       AuthenticationState currentState, AuthenticationEvent event) async* {
-    if (event is AppStarted) {
+    if (event is AppStart) {
       final bool hasToken = await _hasToken();
 
       if (hasToken) {
@@ -35,14 +35,14 @@ class AuthenticationBloc
       }
     }
 
-    if (event is LoggedIn) {
+    if (event is Login) {
       yield currentState.copyWith(isLoading: true);
 
       await _persistToken(event.token);
       yield AuthenticationState.authenticated();
     }
 
-    if (event is LoggedOut) {
+    if (event is Logout) {
       yield currentState.copyWith(isLoading: true);
 
       await _deleteToken();
