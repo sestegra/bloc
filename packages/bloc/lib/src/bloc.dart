@@ -17,6 +17,16 @@ abstract class Bloc<E, S> {
   /// Returns the state before any events have been `dispatched`.
   S get initialState;
 
+  /// Returns the current state of the bloc.
+  S get currentState => _stateSubject.value;
+
+  /// Update the current state of the bloc.
+  /// setting `currentState` bypasses `mapEventToState` and
+  /// updates the bloc state immediately.
+  void set currentState(S newState) {
+    _stateSubject.value = newState;
+  }
+
   Bloc() {
     _stateSubject = BehaviorSubject<S>(seedValue: initialState);
     _bindStateSubject();
@@ -58,11 +68,11 @@ abstract class Bloc<E, S> {
 
     (transform(_eventSubject) as Observable<E>).concatMap((E event) {
       currentEvent = event;
-      return mapEventToState(_stateSubject.value, event);
+      return mapEventToState(currentState, event);
     }).forEach(
       (S nextState) {
         final transition = Transition(
-          currentState: _stateSubject.value,
+          currentState: currentState,
           event: currentEvent,
           nextState: nextState,
           bloc: this,
