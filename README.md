@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/felangel/bloc/master/doc/assets/bloc_logo_full.png" height="60" alt="Bloc" />
+<img src="https://raw.githubusercontent.com/felangel/bloc/master/docs/assets/bloc_logo_full.png" height="60" alt="Bloc" />
 
 [![Build Status](https://travis-ci.org/felangel/bloc.svg?branch=master)](https://travis-ci.org/felangel/bloc)
 [![codecov](https://codecov.io/gh/felangel/Bloc/branch/master/graph/badge.svg)](https://codecov.io/gh/felangel/bloc)
@@ -8,7 +8,7 @@
 
 ---
 
-A collection of packages that help implement the [Bloc pattern](https://www.youtube.com/watch?v=fahC3ky_zW0).
+A collection of packages that help implement the [BLoC pattern](https://www.youtube.com/watch?v=fahC3ky_zW0).
 
 | Package | Pub |
 |--------|-----|
@@ -18,11 +18,12 @@ A collection of packages that help implement the [Bloc pattern](https://www.yout
 
 ## Overview
 
-<img src="https://raw.githubusercontent.com/felangel/bloc/master/doc/assets/bloc_architecture.png" alt="Bloc Architecture" />
+<img src="https://raw.githubusercontent.com/felangel/bloc/master/docs/assets/bloc_architecture.png" alt="Bloc Architecture" />
 
 The goal of this package is to make it easy to separate _presentation_ from _business logic_, facilitating testability and reusability.
 
 ## Documentation
+- [Official Documentation](https://felangel.github.io/bloc)
 - [Bloc Package](https://github.com/felangel/Bloc/tree/master/packages/bloc/README.md)
 - [Flutter Bloc Package](https://github.com/felangel/Bloc/tree/master/packages/flutter_bloc/README.md)
 - [Angular Bloc Package](https://github.com/felangel/Bloc/tree/master/packages/angular_bloc/README.md)
@@ -48,7 +49,7 @@ The goal of this package is to make it easy to separate _presentation_ from _bus
 - [bloc package](https://medium.com/flutter-community/flutter-bloc-package-295b53e95c5c) - An intro to the bloc package with high level architecture and examples.
 - [flutter login tutorial with flutter_bloc package](https://medium.com/flutter-community/flutter-login-tutorial-with-flutter-bloc-ea606ef701ad) - How to create a full login flow using the bloc and flutter_bloc packages.
 - [unit testing with bloc](https://medium.com/@felangelov/unit-testing-with-bloc-b94de9655d86) - How to unit test the blocs created in the flutter login tutorial.
-
+- [flutter infinite list tutorial with flutter_bloc package](https://medium.com/flutter-community/flutter-infinite-list-tutorial-with-flutter-bloc-2fc7a272ec67) - How to create an infinite list using the bloc and flutter_bloc packages.
 ## Contributors
 
 - [Felix Angelov](https://github.com/felangel)

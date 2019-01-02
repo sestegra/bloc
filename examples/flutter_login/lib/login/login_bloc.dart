@@ -2,24 +2,16 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 import 'package:bloc/bloc.dart';
+import 'package:user_repository/user_repository.dart';
 
 import 'package:flutter_login/login/login.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
+  final UserRepository userRepository;
+
+  LoginBloc({@required this.userRepository}) : assert(userRepository != null);
+
   LoginState get initialState => LoginState.initial();
-
-  void onLoginButtonPressed({String username, String password}) {
-    dispatch(
-      LoginButtonPressed(
-        username: username,
-        password: password,
-      ),
-    );
-  }
-
-  void onLoginSuccess() {
-    dispatch(LoggedIn());
-  }
 
   @override
   Stream<LoginState> mapEventToState(
@@ -30,7 +22,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       yield LoginState.loading();
 
       try {
-        final token = await _getToken(
+        final token = await userRepository.authenticate(
           username: event.username,
           password: event.password,
         );
@@ -44,16 +36,5 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     if (event is LoggedIn) {
       yield LoginState.initial();
     }
-  }
-
-  Future<String> _getToken({
-    @required String username,
-    @required String password,
-  }) async {
-    await Future.delayed(Duration(seconds: 1));
-
-    /// uncomment the following line to simulator a login error.
-    // throw Exception('Login Error');
-    return 'token';
   }
 }

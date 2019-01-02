@@ -2,13 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
-import 'package:rxdart/rxdart.dart';
 import 'package:bloc/bloc.dart';
 
 /// A function that will be run which takes the [BuildContext] and state
 /// and is responsible for returning a [Widget] which is to be rendered.
 /// This is analogous to the `builder` function in [StreamBuilder].
-typedef Widget BlocWidgetBuilder<S>(BuildContext context, S state);
+typedef BlocWidgetBuilder<S> = Widget Function(BuildContext context, S state);
 
 /// A Flutter widget which requires a [Bloc] and a [BlocWidgetBuilder] `builder` function.
 /// [BlocBuilder] handles building the widget in response to new states.
@@ -51,12 +50,10 @@ class _BlocBuilderBaseState<E, S> extends State<BlocBuilderBase<E, S>> {
   StreamSubscription<S> _subscription;
   S _state;
 
-  S get currentState => (widget.bloc.state as BehaviorSubject<S>).value;
-
   @override
   void initState() {
     super.initState();
-    _state = currentState;
+    _state = widget.bloc.currentState;
     _subscribe();
   }
 
@@ -66,7 +63,7 @@ class _BlocBuilderBaseState<E, S> extends State<BlocBuilderBase<E, S>> {
     if (oldWidget.bloc.state != widget.bloc.state) {
       if (_subscription != null) {
         _unsubscribe();
-        _state = currentState;
+        _state = widget.bloc.currentState;
       }
       _subscribe();
     }
@@ -83,7 +80,7 @@ class _BlocBuilderBaseState<E, S> extends State<BlocBuilderBase<E, S>> {
 
   void _subscribe() {
     if (widget.bloc.state != null) {
-      _subscription = widget.bloc.state.distinct().skip(1).listen((S state) {
+      _subscription = widget.bloc.state.skip(1).listen((S state) {
         setState(() {
           _state = state;
         });

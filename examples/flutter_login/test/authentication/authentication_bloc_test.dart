@@ -1,16 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:mockito/mockito.dart';
+import 'package:user_repository/user_repository.dart';
+
 import 'package:flutter_login/authentication/authentication.dart';
+
+class MockUserRepository extends Mock implements UserRepository {}
 
 void main() {
   AuthenticationBloc authenticationBloc;
+  MockUserRepository userRepository;
 
   setUp(() {
-    authenticationBloc = AuthenticationBloc();
+    userRepository = MockUserRepository();
+    authenticationBloc = AuthenticationBloc(userRepository: userRepository);
   });
 
   test('initial state is correct', () {
-    expect(authenticationBloc.initialState, AuthenticationState.initializing());
+    expect(authenticationBloc.initialState, AuthenticationUninitialized());
   });
 
   test('dispose does not emit new states', () {
@@ -22,25 +29,31 @@ void main() {
   });
 
   group('AppStarted', () {
-    test('emits AuthenticationState.unauthenticated() for invalid token', () {
+    test('emits [uninitialized, unauthenticated] for invalid token', () {
       final expectedResponse = [
-        AuthenticationState.unauthenticated(),
+        AuthenticationUninitialized(),
+        AuthenticationInitialized.unauthenticated(),
       ];
+
+      when(userRepository.hasToken()).thenAnswer((_) => Future.value(false));
 
       expectLater(
         authenticationBloc.state,
         emitsInOrder(expectedResponse),
       );
 
-      authenticationBloc.dispatch(AppStarted());
+      authenticationBloc.dispatch(AppStart());
     });
   });
 
   group('LoggedIn', () {
-    test('emits [loading, authenticated] when token is persisted', () {
+    test(
+        'emits [uninitialized, loading, authenticated] when token is persisted',
+        () {
       final expectedResponse = [
-        AuthenticationState.initializing().copyWith(isLoading: true),
-        AuthenticationState.authenticated(),
+        AuthenticationUninitialized(),
+        AuthenticationInitialized(isLoading: true, isAuthenticated: false),
+        AuthenticationInitialized.authenticated(),
       ];
 
       expectLater(
@@ -48,17 +61,20 @@ void main() {
         emitsInOrder(expectedResponse),
       );
 
-      authenticationBloc.dispatch(LoggedIn(
+      authenticationBloc.dispatch(Login(
         token: 'instance.token',
       ));
     });
   });
 
   group('LoggedOut', () {
-    test('emits [loading, unauthenticated] when token is deleted', () {
+    test(
+        'emits [uninitialized, loading, unauthenticated] when token is deleted',
+        () {
       final expectedResponse = [
-        AuthenticationState.initializing().copyWith(isLoading: true),
-        AuthenticationState.unauthenticated(),
+        AuthenticationUninitialized(),
+        AuthenticationInitialized(isLoading: true, isAuthenticated: true),
+        AuthenticationInitialized.unauthenticated(),
       ];
 
       expectLater(
@@ -66,7 +82,7 @@ void main() {
         emitsInOrder(expectedResponse),
       );
 
-      authenticationBloc.dispatch(LoggedOut());
+      authenticationBloc.dispatch(Logout());
     });
   });
 }

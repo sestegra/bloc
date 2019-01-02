@@ -2,69 +2,45 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 import 'package:bloc/bloc.dart';
+import 'package:user_repository/user_repository.dart';
 
 import 'package:flutter_login/authentication/authentication.dart';
 
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
-  void onAppStart() {
-    dispatch(AppStarted());
-  }
+  final UserRepository userRepository;
 
-  void onLogin({@required String token}) {
-    dispatch(LoggedIn(token: token));
-  }
-
-  void onLogout() {
-    dispatch(LoggedOut());
-  }
+  AuthenticationBloc({@required this.userRepository})
+      : assert(userRepository != null);
 
   @override
-  AuthenticationState get initialState => AuthenticationState.initializing();
+  AuthenticationState get initialState => AuthenticationUninitialized();
 
   @override
   Stream<AuthenticationState> mapEventToState(
-      AuthenticationState currentState, AuthenticationEvent event) async* {
-    if (event is AppStarted) {
-      final bool hasToken = await _hasToken();
+    AuthenticationState currentState,
+    AuthenticationEvent event,
+  ) async* {
+    if (event is AppStart) {
+      final bool hasToken = await userRepository.hasToken();
 
       if (hasToken) {
-        yield AuthenticationState.authenticated();
+        yield AuthenticationInitialized.authenticated();
       } else {
-        yield AuthenticationState.unauthenticated();
+        yield AuthenticationInitialized.unauthenticated();
       }
     }
 
-    if (event is LoggedIn) {
-      yield currentState.copyWith(isLoading: true);
-
-      await _persistToken(event.token);
-      yield AuthenticationState.authenticated();
+    if (event is Login) {
+      yield AuthenticationInitialized(isAuthenticated: false, isLoading: true);
+      await userRepository.persistToken(event.token);
+      yield AuthenticationInitialized.authenticated();
     }
 
-    if (event is LoggedOut) {
-      yield currentState.copyWith(isLoading: true);
-
-      await _deleteToken();
-      yield AuthenticationState.unauthenticated();
+    if (event is Logout) {
+      yield AuthenticationInitialized(isAuthenticated: true, isLoading: true);
+      await userRepository.deleteToken();
+      yield AuthenticationInitialized.unauthenticated();
     }
-  }
-
-  Future<void> _deleteToken() async {
-    /// delete from keystore/keychain
-    await Future.delayed(Duration(seconds: 1));
-    return;
-  }
-
-  Future<void> _persistToken(String token) async {
-    /// write to keystore/keychain
-    await Future.delayed(Duration(seconds: 1));
-    return;
-  }
-
-  Future<bool> _hasToken() async {
-    /// read from keystore/keychain
-    await Future.delayed(Duration(seconds: 1));
-    return false;
   }
 }

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:user_repository/user_repository.dart';
 
 import 'package:flutter_login/authentication/authentication.dart';
 import 'package:flutter_login/splash/splash.dart';
 import 'package:flutter_login/login/login.dart';
 import 'package:flutter_login/home/home.dart';
+import 'package:flutter_login/common/common.dart';
 
 class SimpleBlocDelegate extends BlocDelegate {
   @override
@@ -26,10 +28,14 @@ class App extends StatefulWidget {
 }
 
 class AppState extends State<App> {
-  final AuthenticationBloc _authenticationBloc = AuthenticationBloc();
+  AuthenticationBloc _authenticationBloc;
+  final UserRepository _userRepository = UserRepository();
 
-  AppState() {
-    _authenticationBloc.onAppStart();
+  @override
+  void initState() {
+    _authenticationBloc = AuthenticationBloc(userRepository: _userRepository);
+    _authenticationBloc.dispatch(AppStart());
+    super.initState();
   }
 
   @override
@@ -43,49 +49,32 @@ class AppState extends State<App> {
     return BlocProvider<AuthenticationBloc>(
       bloc: _authenticationBloc,
       child: MaterialApp(
-        home: _rootPage(),
+        home: BlocBuilder<AuthenticationEvent, AuthenticationState>(
+          bloc: _authenticationBloc,
+          builder: (BuildContext context, AuthenticationState state) {
+            List<Widget> widgets = [];
+            if (state is AuthenticationUninitialized) {
+              widgets.add(SplashPage());
+            }
+            if (state is AuthenticationInitialized) {
+              if (state.isAuthenticated) {
+                widgets.add(HomePage());
+              } else {
+                widgets.add(LoginPage(
+                  userRepository: _userRepository,
+                ));
+              }
+              if (state.isLoading) {
+                widgets.add(LoadingIndicator());
+              }
+            }
+
+            return Stack(
+              children: widgets,
+            );
+          },
+        ),
       ),
-    );
-  }
-
-  Widget _rootPage() {
-    return BlocBuilder<AuthenticationEvent, AuthenticationState>(
-      bloc: _authenticationBloc,
-      builder: (BuildContext context, AuthenticationState state) {
-        List<Widget> widgets = [];
-
-        if (state.isAuthenticated) {
-          widgets.add(HomePage());
-        } else {
-          widgets.add(LoginPage());
-        }
-
-        if (state.isInitializing) {
-          widgets.add(SplashPage());
-        }
-
-        if (state.isLoading) {
-          widgets.add(_loadingIndicator());
-        }
-
-        return Stack(
-          children: widgets,
-        );
-      },
-    );
-  }
-
-  Widget _loadingIndicator() {
-    return Stack(
-      children: <Widget>[
-        Opacity(
-          opacity: 0.3,
-          child: ModalBarrier(dismissible: false, color: Colors.grey),
-        ),
-        Center(
-          child: CircularProgressIndicator(),
-        ),
-      ],
     );
   }
 }

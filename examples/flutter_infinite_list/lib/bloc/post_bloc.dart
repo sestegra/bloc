@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:http/http.dart' as http;
 import 'package:bloc/bloc.dart';
@@ -7,7 +8,9 @@ import 'package:flutter_infinite_list/bloc/bloc.dart';
 import 'package:flutter_infinite_list/models/models.dart';
 
 class PostBloc extends Bloc<PostEvent, PostState> {
-  final http.Client _httpClient = http.Client();
+  final http.Client httpClient;
+
+  PostBloc({@required this.httpClient});
 
   @override
   Stream<PostEvent> transform(Stream<PostEvent> events) {
@@ -16,26 +19,33 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   }
 
   @override
-  get initialState => PostState.initial();
+  get initialState => PostUninitialized();
 
   @override
   Stream<PostState> mapEventToState(currentState, event) async* {
-    if (event is Fetch && !currentState.hasReachedMax) {
+    if (event is Fetch && !_hasReachedMax(currentState)) {
       try {
-        final posts = await _fetchPosts(currentState.posts.length, 20);
-        if (posts.isEmpty) {
-          yield currentState.copyWith(hasReachedMax: true);
-        } else {
-          yield PostState.success(currentState.posts + posts);
+        if (currentState is PostUninitialized) {
+          final posts = await _fetchPosts(0, 20);
+          yield PostInitialized.success(posts);
+        }
+        if (currentState is PostInitialized) {
+          final posts = await _fetchPosts(currentState.posts.length, 20);
+          yield posts.isEmpty
+              ? currentState.copyWith(hasReachedMax: true)
+              : PostInitialized.success(currentState.posts + posts);
         }
       } catch (_) {
-        yield PostState.failure();
+        yield PostInitialized.failure();
       }
     }
   }
 
+  bool _hasReachedMax(PostState state) =>
+      state is PostInitialized && state.hasReachedMax;
+
   Future<List<Post>> _fetchPosts(int startIndex, int limit) async {
-    final response = await _httpClient.get(
+    final response = await httpClient.get(
         'https://jsonplaceholder.typicode.com/posts?_start=$startIndex&_limit=$limit');
     if (response.statusCode == 200) {
       final data = json.decode(response.body) as List;
